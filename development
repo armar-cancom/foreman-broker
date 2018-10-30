@@ -1,0 +1,14 @@
+[webserver]
+foreman-broker2
+
+[database]
+foreman-broker2
+
+[foreman]
+foreman-broker2
+
+[broker]
+foreman-broker2
+
+[dashboard]
+foreman-broker2

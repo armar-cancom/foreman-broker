@@ -1,0 +1,58 @@
+---
+- debug:
+    msg: "Installing Foreman"
+
+- name: Install foreman-installer 
+  yum:
+    name: foreman-installer
+    state: present
+
+- name: Install puppet-server
+  yum:
+    name: puppetserver
+    state: present
+
+- name: Start puppet-server
+  service:
+    name: puppetserver
+    state: started
+    enabled: yes
+
+- name: setup foreman
+  shell: "{{ lookup('template', 'install-foreman.j2') }}"
+  args:
+    executable: /bin/bash
+
+- name: Create foreman hostgroup
+  shell: "hammer hostgroup create --name foreman-broker"
+  register: verification
+  failed_when: verification.rc not in [0,1,65]
+  args:
+    executable: /bin/bash
+
+- name: Enable foreman discovery plugin 
+  shell: "foreman-installer --enable-foreman-plugin-discovery --enable-foreman-proxy-plugin-discovery"
+  args:
+    executable: /bin/bash
+
+- name: Restart Foreman
+  service:
+    name: foreman
+    state: restarted
+
+- name: Restart Foreman Proxy
+  service:
+    name: foreman-proxy
+    state: restarted
+
+- name: Get Foreman discovery image
+  shell: "foreman-installer --foreman-proxy-plugin-discovery-source-url=http://downloads.theforeman.org/discovery/releases/latest/ --foreman-proxy-plugin-discovery-install-images=true"
+  args:
+    executable: /bin/bash
+
+- name: Install foreman hammer discovery cli
+  yum:
+    name: tfm-rubygem-hammer_cli_foreman_discovery
+    state: present
+
+

@@ -1,0 +1,233 @@
+ <!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache" />
+    <meta name="google" content="notranslate">
+    <meta http-equiv="Content-Language" content="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="js/foremanbroker.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Customers</title>
+  </head>
+  <body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="#">Foreman Broker</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="index.html">Jobs</a>
+      </li>
+      <li class="nav-item active">
+               <a class="nav-link" href="tasks.html">Tasks</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="customers.html">Customers<span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="racks.html">Racks</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="hosts.html">Hosts</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="col-xs-12 col-md-4 col-lg-9">
+  <!-- Content here -->
+<br>
+
+<div class="btn-group btn-group-toggle" data-toggle="buttons">
+  <label class="btn btn-info active" onclick="$('#container-tasks').show();$('#container-runningtasks').hide(); $('#container-assignedtasks').hide();">
+    <input type="radio" name="options" id="option1" autocomplete="off" checked> Tasks 
+  </label>
+  <label class="btn btn-info" onclick="$('#container-tasks').hide();$('#container-runningtasks').hide(); $('#container-assignedtasks').show();">
+    <input type="radio" name="options" id="option2" autocomplete="off"> Assigned Tasks
+  </label>
+  <label class="btn btn-info" onclick="$('#container-tasks').hide();$('#container-runningtasks').show(); $('#container-assignedtasks').hide();">
+    <input type="radio" name="options" id="option3" autocomplete="off"> Running Tasks
+  </label>
+</div>
+
+<br><br>
+<div id="container-tasks">
+All Tasks: &nbsp;&nbsp;<button type="button" class="btn btn-success btn-sm " data-toggle="modal" data-target="#addnewtask" style="margin-bottom: 5px;">Add Task</button>
+&nbsp;&nbsp;<button type="button" class="btn btn-primary btn-sm " data-toggle="modal" data-target="#edittask" style="margin-bottom: 5px;">Edit Tasks</button>
+<table class="table table-sm" id="alltasks">
+  <thead>
+    <tr>
+      <th scope="col">Task Name</th>
+      <th scope="col">Description</th>
+      <th scope="col">Foreman Template</th>
+      <th scope="col" class="text-center">Execute on Foreman?</th>
+      <th scope="col" class="text-center">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+</table>
+<br>
+</div>
+
+<div id="container-runningtasks" >
+Running Jobs Task List: <span id="countdowntimer">.</span>
+<table class="table table-sm" id="tasksrunning">
+  <thead>
+    <tr>
+      <th scope="col">Customer</th>
+      <th scope="col">Job</th>
+      <th scope="col">Task</th>
+      <th scope="col">Rack</th>
+      <th scope="col">Host</th>
+      <th scope="col">Task Status</th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+</table>
+<br>
+</div>
+<div id="container-assignedtasks">
+Assigned Tasks:
+<table class="table table-sm"id="tasks">
+  <thead>
+    <tr>
+      <th scope="col">Customer</th>
+      <th scope="col">Job</th>
+      <th scope="col">Task</th>
+      <th scope="col">Rack</th>
+      <th scope="col">Host</th>
+      <th scope="col">Job Status</th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+</table>
+<br>
+</div>
+
+</div>
+<!-- Modal -->
+<!-- NEW TASK -->
+<div class="modal fade" tabindex="-1" role="dialog" id="addnewtask">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add New Task</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+<form>
+  <div class="form-group">
+    <label>Task Name</label>
+    <input  class="form-control" id="taskname" placeholder="Task Name">
+  </div>
+  <div class="form-group">
+    <label >Description</label>
+    <input class="form-control" id="taskdescription" placeholder="Description">
+  </div>
+  <div class="form-group">
+    <label>Foreman Template</label>
+    <input class="form-control" id="taskforemantemplate" placeholder="Foreman Template">
+  </div>
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" id="taskexecute">
+    <label class="form-check-label">Execute on Foreman?</label>
+  </div>
+
+</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="addtask();">Add Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TASK -->
+<div class="modal fade" tabindex="-1" role="dialog" id="edittask">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Existing Task</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+<form>
+  <div class="form-group">
+<label>Task List:</label>
+<select id="tasklist" class="form-control form-control-sm" onchange="gettaskdetails();">
+  <option>Select Task</option>
+</select><hr>
+    <label>Task Name</label>
+    <input  class="form-control" id="edittaskname" placeholder="Task Name">
+  </div>
+  <div class="form-group">
+    <label >Description</label>
+    <input class="form-control" id="edittaskdescription" placeholder="Description">
+  </div>
+  <div class="form-group">
+    <label>Foreman Template</label>
+    <input class="form-control" id="edittaskforemantemplate" placeholder="Foreman Template">
+  </div>
+  <div class="form-check">
+    <input type="checkbox" class="form-check-input" id="edittaskexecute">
+    <label class="form-check-label">Execute on Foreman?</label>
+  </div>
+  <input id="edittaskid">
+</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="savetask();">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- EndModal -->
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="js/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+    $('#container-tasks').show();$('#container-runningtasks').hide(); $('#container-assignedtasks').hide();$('#edittaskid').hide();
+    getassignedtasks();
+    gettasksrunning();
+    gettasks();
+    gettasklist();
+    cleartaskforms();
+    //setInterval(gettasksrunning, 5000);
+</script>
+<script type="text/javascript">
+  var timeleft = 5;
+  var downloadTimer = setInterval(function(){
+    document.getElementById("countdowntimer").textContent += '.';
+    timeleft--;
+    if(timeleft <= 0) {
+        timeleft = 5;
+        document.getElementById("countdowntimer").textContent = '.';
+        //if ($("#foremanhosts option:selected").length > 0) { return; }
+        //if ($("#discoveredhosts option:selected").length > 0) { return; }
+        gettasksrunning();
+        //getforemanhosts();
+        //gethosts();
+    } 
+  },1000);
+</script>
+
+</body>
+</html>

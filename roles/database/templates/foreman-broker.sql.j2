@@ -1,0 +1,242 @@
+-- ****************** SqlDBM: MySQL ******************;
+-- ***************************************************;
+drop database if exists foremanbroker;
+create database foremanbroker;
+use foremanbroker;
+grant all on foremanbroker.* to {{ db_user }}@localhost identified by '{{ db_password }}';
+grant all on foremanbroker.* to {{ db_user }}@'%' identified by '{{ db_password }}';
+grant all on foremanbroker.* to {{ db_user }}@'{{ foreman_host }}' identified by '{{ db_password }}';
+
+
+
+-- ************************************** jobs
+
+CREATE TABLE jobs
+(
+ id     INT NOT NULL AUTO_INCREMENT ,
+ jobid  INT NOT NULL ,
+ taskid INT NOT NULL ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** resultstate
+
+CREATE TABLE resultstate
+(
+ id      INT NOT NULL AUTO_INCREMENT ,
+ stateid INT NOT NULL ,
+ state   VARCHAR(45) NOT NULL ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** results
+
+CREATE TABLE results
+(
+ id            INT NOT NULL AUTO_INCREMENT ,
+ hostname      VARCHAR(45) NOT NULL ,
+ taskname      VARCHAR(45) NOT NULL ,
+ result        TEXT NOT NULL ,
+ description   VARCHAR(45) ,
+ resultstateid INT NOT NULL ,
+ timestamp     DATETIME NOT NULL ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** jobstatus
+
+CREATE TABLE jobstatus
+(
+ id       INT NOT NULL AUTO_INCREMENT ,
+ status   VARCHAR(45) ,
+ statusid INT ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** taskstatus
+
+CREATE TABLE taskstatus
+(
+ id       INT NOT NULL AUTO_INCREMENT ,
+ status   VARCHAR(45) NOT NULL ,
+ statusid INT NOT NULL ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** assignedjobs
+
+CREATE TABLE assignedjobs
+(
+ id          INT NOT NULL AUTO_INCREMENT ,
+ jobid       INT NOT NULL ,
+ groupid     INT NOT NULL ,
+ status      INT NOT NULL ,
+ pctcomplete INT ,
+ notify      INT ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** assignedtasks
+
+CREATE TABLE assignedtasks
+(
+ id            INT NOT NULL AUTO_INCREMENT ,
+ taskid        INT NOT NULL ,
+ statusid      INT NOT NULL ,
+ hostid        INT NOT NULL ,
+ assignedjobid INT NOT NULL ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** task
+
+CREATE TABLE task
+(
+ id              INT NOT NULL AUTO_INCREMENT ,
+ name            VARCHAR(45) NOT NULL ,
+ description     VARCHAR(45) ,
+ foremantemplate VARCHAR(45) NOT NULL ,
+ isreportable    INT ,
+ notify          INT ,
+ executeremote   INT ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** host
+
+CREATE TABLE host
+(
+ id          INT NOT NULL AUTO_INCREMENT ,
+ name        VARCHAR(45) NOT NULL ,
+ hostgroupid INT NOT NULL ,
+ description VARCHAR(45) ,
+ position    INT ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** job
+
+CREATE TABLE job
+(
+ id          INT NOT NULL AUTO_INCREMENT ,
+ name        VARCHAR(45) NOT NULL ,
+ description VARCHAR(45) ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** customers
+
+CREATE TABLE customers
+(
+ id            INT NOT NULL AUTO_INCREMENT ,
+ name          VARCHAR(45) NOT NULL ,
+ addressline1  VARCHAR(45) ,
+ addressline2  VARCHAR(45) ,
+ addressline3  VARCHAR(45) ,
+ contact1      VARCHAR(45) ,
+ contact1phone VARCHAR(45) ,
+ contact2      VARCHAR(45) ,
+ contact2phone VARCHAR(45) ,
+
+PRIMARY KEY (id)
+);
+
+
+
+
+
+-- ************************************** hostgroup
+
+CREATE TABLE hostgroup
+(
+ id          INT NOT NULL AUTO_INCREMENT ,
+ name        VARCHAR(45) NOT NULL ,
+ description VARCHAR(45) ,
+ customerid  INT NOT NULL ,
+
+PRIMARY KEY (id)
+);
+
+
+insert into jobstatus(statusid, status) values(1,'Not Started');
+insert into jobstatus(statusid, status) values(2,'Ready');
+insert into jobstatus(statusid, status) values(3,'Running');
+insert into jobstatus(statusid, status) values(4,'Canceled');
+insert into jobstatus(statusid, status) values(5,'Finished');
+
+insert into taskstatus(statusid, status) values(1,'Not Started');
+insert into taskstatus(statusid, status) values(2,'Ready');
+insert into taskstatus(statusid, status) values(3,'Running');
+insert into taskstatus(statusid, status) values(4,'Canceled');
+insert into taskstatus(statusid, status) values(5,'Finished');
+insert into taskstatus(statusid, status) values(6,'Error');
+
+insert into resultstate(stateid, state) values(0,'OK');
+insert into resultstate(stateid, state) values(1,'WARNING');
+insert into resultstate(stateid, state) values(2,'ERROR');
+
+create view vw_assignedjobs as select assignedjobs.id, customers.name as customername, jobid, job.name as jobname, job.description, groupid, hostgroup.name as hostgroupname,pctcomplete, notify, jobstatus.statusid, jobstatus.status from assignedjobs join jobstatus on assignedjobs.status=jobstatus.statusid join hostgroup on assignedjobs.groupid=hostgroup.id join job on assignedjobs.jobid = job.id join customers on customers.id=hostgroup.customerid order by customers.name, hostgroup.name;
+
+
+create view vw_assignedtasks as select assignedtasks.*, task.executeremote, task.foremantemplate, task.name as taskname, taskstatus.status, host.name as hostname, job.name as jobname, job.description as jobdescription, job.id as jobid, hostgroup.id as hostgroupid, hostgroup.name as hostgroupname, customers.id as customerid, customers.name as customername from assignedtasks join taskstatus on taskstatus.statusid=assignedtasks.statusid join host on host.id=assignedtasks.hostid join assignedjobs on assignedjobs.id=assignedtasks.assignedjobid join job on assignedjobs.jobid=job.id join task on assignedtasks.taskid=task.id join hostgroup on hostgroup.id=host.hostgroupid join customers on customers.id=hostgroup.customerid order by customers.name, hostgroup.name, job.name, host.name;
+
+create view vw_task_completion_status as select jobname, jobid, assignedjobid, statusid, status, customername, hostgroupid, hostgroupname from vw_assignedtasks group by jobname, jobid, assignedjobid, statusid, status, customername, hostgroupid, hostgroupname;
+
+create VIEW vw_assigned_tasks_to_host AS select customers.name AS customername,job.name AS jobname,host.id AS hostid,host.name AS hostname,assignedjobs.groupid AS groupid,hostgroup.name AS hostgroup,assignedjobs.id AS jobid,assignedjobs.status AS statusid,jobstatus.status AS status,assignedjobs.pctcomplete AS pctcomplete,jobs.taskid AS taskid,task.name AS name,task.description AS description from (((((((jobs join task on((jobs.taskid = task.id))) join assignedjobs on((assignedjobs.jobid = jobs.jobid))) join hostgroup on((hostgroup.id = assignedjobs.groupid))) join jobstatus on((jobstatus.statusid = assignedjobs.status))) join host on((host.hostgroupid = hostgroup.id))) join customers on((hostgroup.customerid = customers.id))) join job on((jobs.jobid = job.id))) order by customers.name,job.name,hostgroup.name,host.name,jobs.id;
+
+create VIEW vw_job_task_status_rollup AS select a.id AS id,a.customername AS customername,a.jobid AS jobid,a.jobname AS jobname,a.description AS description,a.groupid AS groupid,a.hostgroupname AS hostgroupname,a.pctcomplete AS pctcomplete,a.notify AS notify,a.statusid AS statusid,a.status AS status,(select count(vw_assignedtasks.assignedjobid) from vw_assignedtasks where (vw_assignedtasks.assignedjobid = a.id)) AS totaltasks,(select count(vw_assignedtasks.assignedjobid) from vw_assignedtasks where ((vw_assignedtasks.assignedjobid = a.id) and (vw_assignedtasks.statusid = 5))) AS completedtasks,(select count(vw_assignedtasks.assignedjobid) from vw_assignedtasks where ((vw_assignedtasks.assignedjobid = a.id) and (vw_assignedtasks.statusid = 6))) AS errortasks from vw_assignedjobs a;
+
+
+create view vw_results as select results.*,resultstate.state from results join resultstate on results.resultstateid=resultstate.stateid;
+
+

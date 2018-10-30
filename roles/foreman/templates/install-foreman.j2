@@ -1,0 +1,17 @@
+foreman-installer \
+--foreman-admin-password="{{ foreman_password }}" \
+--foreman-cli-manage-root-config=true \
+--foreman-cli-password="{{ foreman_password }}" \
+--foreman-cli-username="admin" \
+
+foreman-installer \
+--enable-foreman-proxy \
+--foreman-proxy-tftp=true \
+--foreman-proxy-tftp-servername={{ tftp_servername }} \
+--foreman-proxy-dhcp=true \
+--foreman-proxy-dhcp-interface={{ dhcp_interface }} \
+--foreman-proxy-dhcp-range="{{ dhcp_range }}" \
+--foreman-proxy-dhcp-gateway={{ dhcp_gateway }} \
+--foreman-proxy-dhcp-nameservers="{{ dhcp_nameservers }}" \
+--foreman-proxy-foreman-base-url="{{ foreman_url }}" 
+

@@ -1,0 +1,92 @@
+ <!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="google" content="notranslate">
+    <meta http-equiv="Content-Language" content="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="js/foremanbroker.js"></script>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Rack</title>
+  </head>
+  <body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="#">Foreman Broker</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="index.html">Jobs</a>
+      </li>
+      <li class="nav-item">
+               <a class="nav-link" href="tasks.html">Tasks</a>
+      </li>
+      <li class="nav-item ">
+        <a class="nav-link" href="customers.html">Customers<span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="racks.html">Racks</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="hosts.html">Hosts</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="col-xs-12 col-md-4 col-lg-9">
+  <!-- Content here -->
+<br><br>
+<br>
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+       Foreman Discovered Hosts: <span id="countdowntimer">.</span>
+       <select id="foremanhosts" class="form-control" size="20" multiple>
+	</select>
+	<br><div class="text-center"><button type="button" class="btn btn-primary btn-sm" onclick="assignforemanhost();"> &nbsp;&nbsp;Import ->&nbsp;&nbsp; </button></div>
+    </div>
+    <div class="col-sm">
+      Hosts:
+      <select id="discoveredhosts" class="form-control" size="20" multiple>
+      </select>
+	<br><div class="text-center"><button type="button" class="btn btn-primary btn-sm" onclick="unassigndiscoveredhost();"> &nbsp;&nbsp;Remove&nbsp;&nbsp; </button></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="js/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+  getforemanhosts();
+  gethosts();
+</script>
+<script type="text/javascript">
+    var timeleft = 15;
+    var downloadTimer = setInterval(function(){
+      document.getElementById("countdowntimer").textContent += '.';
+      timeleft--;
+      if(timeleft <= 0) {
+          timeleft = 15;
+          document.getElementById("countdowntimer").textContent = '.';
+          if ($("#foremanhosts option:selected").length > 0) { return; }
+          if ($("#discoveredhosts option:selected").length > 0) { return; }
+          getforemanhosts();
+          gethosts();
+      } 
+    },1000);
+</script>
+
+  </body>
+</html>

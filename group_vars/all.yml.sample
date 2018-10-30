@@ -1,0 +1,21 @@
+---
+api_port: 9999
+api_root: "/var/www/html/foreman-broker/api/public"
+broker_port: 8999
+broker_root: "/var/www/html/foreman-broker/adminconsole"
+slack_api: "https://hooks.slack.com/services/{replace_with_api_key}"
+slack_username: "replace_with_slack_username"
+slack_channel: "replace_with_slack_channel"
+db_host: "localhost"
+db_port: 3306
+db_user: foreman
+db_password: foreman
+foreman_password: "G00dPa55word"
+tftp_servername: "192.168.22.57"
+dhcp_interface: "ens192"
+dhcp_range: "192.168.22.3 192.168.22.4"
+dhcp_gateway: "192.168.22.254"
+dhcp_nameservers: "8.8.8.8"
+foreman_url: "https://foreman-broker.mydomain.com"
+foreman_host: "foreman-broker.mydomain.com"
+http_port: "8999"

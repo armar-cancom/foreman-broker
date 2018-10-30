@@ -1,0 +1,45 @@
+<?php
+// DIC configuration
+$container = $app->getContainer();
+ 
+// PDO database library
+$container['db'] = function ($c) {
+    $settings = $c->get('settings')['db'];
+    $pdo = new PDO("mysql:host=" . $settings['host'] . ";dbname=" . $settings['dbname'],
+        $settings['user'], $settings['pass']);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    return $pdo;
+};
+
+$container['foreman'] = function ($c) {
+    return $c->get('settings')['foreman'];
+};
+
+//Slack Configurtaion Settings
+$container['slackapi'] = "{{ slack_api }}";
+$container['slackchannel'] = "{{ slack_channel }}";
+$container['slackusername'] = "{{ slack_username }}";
+
+
+function do_post_request($url, $data, $optional_headers = null)
+{
+  $params = array('http' => array(
+              'method' => 'POST',
+              'content' => $data
+            ));
+  if ($optional_headers !== null) {
+    $params['http']['header'] = $optional_headers;
+  }
+  $ctx = stream_context_create($params);
+  $fp = @fopen($url, 'rb', false, $ctx);
+  if (!$fp) {
+    throw new Exception("Problem with $url, $php_errormsg");
+  }
+  $response = @stream_get_contents($fp);
+  if ($response === false) {
+    throw new Exception("Problem reading data from $url, $php_errormsg");
+  }
+  return $response;
+}
+

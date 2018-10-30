@@ -1,0 +1,48 @@
+---
+- debug:
+    msg: "Installing the database"
+
+- name: Install MariaDB
+  yum:
+    name:
+      - mariadb
+      - mariadb-server
+      - mariadb-libs 
+    state: present
+
+- name: Start MariaDB
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: copy database schema to tmp directory
+  template:
+    src: foreman-broker.sql.j2
+    dest: /tmp/foreman-broker.sql
+
+- name: Import database schema
+  shell: "mysql < /tmp/foreman-broker.sql"
+  args:
+    executable: /bin/bash
+
+- name: Copy patch to tmp directory
+  copy:
+    src: foreman-broker-patch1.sql
+    dest: /tmp/foreman-broker-patch1.sql
+
+- name: Copy demo.sql to tmp dir
+  copy:
+    src: demo.sql
+    dest: /tmp/demo.sql
+
+- name: Apply database patch1
+  shell: "mysql foremanbroker < /tmp/foreman-broker-patch1.sql"
+  args:
+    executable: /bin/bash
+
+- name: Import demo data 
+  shell: "mysql foremanbroker < /tmp/demo.sql"
+  args:
+    executable: /bin/bash
+

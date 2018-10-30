@@ -1,0 +1,9 @@
+Listen {{ api_port }}
+<VirtualHost *:{{ api_port }}>
+  ServerName default
+  ServerAdmin root@localhost
+  DocumentRoot "{{ api_root }}"
+  <Directory {{ api_root}}>
+     AllowOverride All
+  </Directory>
+</VirtualHost>

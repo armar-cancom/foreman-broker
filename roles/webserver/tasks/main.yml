@@ -1,0 +1,50 @@
+---
+- debug:
+    msg: "Installing the web server for the foreman broker"
+
+- name: Copy repos to yum.repos.d
+  copy:
+    src: "{{ item }}"
+    dest: "/etc/yum.repos.d/"
+  with_fileglob:
+    - files/*.repo 
+
+- name: Install puppet repo
+  yum:
+    name: "https://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm"
+    state: present
+
+- name: Install EPEL repo
+  yum:
+    name: "http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+    state: present
+
+- name: Install foreman repo
+  yum:
+    name: "https://yum.theforeman.org/releases/1.19/el7/x86_64/foreman-release.rpm"
+    state: present
+
+- name: Stop firewalld
+  service:
+    name: firewalld
+    state: stopped
+
+- name: Disable firewalld
+  service:
+     name: firewalld
+     enabled: no
+
+- name: Install Apache Web Server
+  yum:
+    name: httpd
+    state: present
+
+- name: Enable httpd service
+  service:
+    name: httpd
+    enabled: yes
+
+- name: Start httpd service
+  service:
+    name: httpd
+    state: started

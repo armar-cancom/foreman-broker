@@ -1,0 +1,492 @@
+var foreman_url = 'http://{{ foreman_host }}:9999';
+
+function send_to_slack(message){
+    url = foreman_url + '/slack/send/' + message;
+    $.getJSON(url);
+}
+
+function getcustomers(){
+    url = foreman_url + '/customers';
+    $.getJSON(url, function (data) {
+    $.each(data, function (key, entry) {
+        $('#customers > tbody:last-child').append('<tr><td>' + entry.name + '</td><td>' + entry.addressline1 + '<br>' + entry.addressline2 + '<br>' + entry.addressline3 + '</td><td>'+ entry.contact1 + '<br>' + entry.contact1phone + '</td><td>'+ entry.contact2 + '<br>' + entry.contact2phone +'</td><td><button type="button" class="btn btn-danger btn-sm" onclick="deletecustomer(' + entry.id + ');">Remove</button></td></tr>');
+    })
+    });
+}
+
+function getassignedtasks(){
+    url = foreman_url + '/tasks/assigned';
+    $.getJSON(url, function (data) {
+    $.each(data, function (key, entry) {
+        $('#tasks > tbody:last-child').append('<tr><td>' + entry.customername + '</td><td>' + entry.jobname + '</td><td>'+ entry.name + '</td><td>' + entry.hostgroup + '</td><td>'+ entry.hostname + '</td><td>' + entry.status + '</td><td><button type="button" class="btn btn-danger btn-sm" onclick="deletecustomer(' + entry.id + ');">Remove</button></td></tr>');
+    })
+    });
+}
+
+function gettasks(){
+    url = foreman_url + '/tasks';
+    //$('#alltasks tr').remove();
+    $('#alltasks tbody tr').remove();
+    $.getJSON(url, function (data) {
+    $.each(data, function (key, entry) {
+	foremanexecute = "No";
+	if (entry.executeremote==1) { foremanexecute = "Yes";}
+        $('#alltasks > tbody:last-child').append('<tr><td>' + entry.name + '</td><td>' + entry.description + '</td><td>' + entry.foremantemplate + '</td><td class="text-center">' + foremanexecute + '</td class="text-center"><td>&nbsp;&nbsp;<button type="button" class="btn btn-danger btn-sm" onclick="deletetask(' + entry.id + ');">Remove</button></td></tr>');
+    })
+    });
+}
+
+function cleartaskforms(){
+    $("#taskname").val("");
+    $("#taskdescription").val("");
+    $("#taskforemantemplate").val("");
+    $("#taskexecute").prop("checked", false);
+    $("#edittaskname").val("");
+    $("#edittaskdescription").val("");
+    $("#edittaskforemantemplate").val("");
+    $("#edittaskexecute").prop("checked", false);
+}
+
+function gettaskdetails(){
+    taskid = $('#tasklist').val();
+    url = foreman_url + '/tasks/' + taskid;
+    $.getJSON(url, function (data) {
+    $.each(data, function (key, entry) {
+	$('#edittaskname').val(entry.name);
+	$('#edittaskdescription').val(entry.description);
+	$('#edittaskforemantemplate').val(entry.foremantemplate);
+	$('#edittaskid').val(entry.id);
+	if (entry.executeremote==1){
+		$('#edittaskexecute').prop("checked", true);
+	} else {
+		$('#edittaskexecute').prop("checked", false);
+	}
+    })
+    });
+}
+
+function deletetask(taskid){
+    url = foreman_url + '/tasks/delete/' + taskid;
+    $.getJSON(url, function (data) {
+        //location.reload();
+	gettasks();
+    });
+}
+
+function addtask(){
+    var url = foreman_url + '/tasks/add';
+    var form = new FormData();
+    var executeremote = 0;
+    if($('#taskexecute').is(':checked')) {executeremote=1};
+    form.append("name",$("#taskname").val());
+    form.append("description",$("#taskdescription").val());
+    form.append("foremantemplate",$("#taskforemantemplate").val());
+    form.append("executeremote",executeremote);
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        location.reload();
+    });
+}
+
+function savetask(){
+    var url = foreman_url + '/tasks/update';
+    var form = new FormData();
+    var executeremote = 0;
+    if($('#edittaskexecute').is(':checked')) {executeremote=1};
+    form.append("name",$("#edittaskname").val());
+    form.append("id",$("#edittaskid").val());
+    form.append("description",$("#edittaskdescription").val());
+    form.append("foremantemplate",$("#edittaskforemantemplate").val());
+    form.append("executeremote",executeremote);
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        //location.reload();
+	gettasks();
+    });
+}
+
+function gettasksrunning(){
+    url = foreman_url + '/tasks/assigned/runningjobs';
+    $.getJSON(url, function (data) {
+     $('#tasksrunning tbody tr').remove();
+    $.each(data, function (key, entry) {
+        $('#tasksrunning > tbody:last-child').append('<tr><td>' + entry.customername + '</td><td>' + entry.jobname + '</td><td>'+ entry.taskname + '</td><td>' + entry.hostgroupname + '</td><td>'+ entry.hostname + '</td><td>' + entry.status + '</td><td><button type="button" class="btn btn-danger btn-sm" onclick="deletecustomer(' + entry.id + ');">Cancel</button></td></tr>');
+    })
+    });
+}
+
+
+function deletecustomer(customerid){
+    url = foreman_url + '/customers/delete/' + customerid;
+    $.getJSON(url, function (data) {
+        alert('Customer Deleted');
+        location.reload();
+    });
+}
+
+function addcustomer(){
+    var url = foreman_url + '/customers/add';
+    var form = new FormData();
+    form.append("name",$("#formname").val());
+    form.append("addressline1",$("#formaddressline1").val());
+    form.append("addressline2",$("#formaddressline2").val());
+    form.append("addressline3",$("#formaddressline3").val());
+    form.append("contact1",$("#formcontact1").val());
+    form.append("contact1phone",$("#formcontact1phone").val());
+    form.append("contact2",$("#formcontact2").val());
+    form.append("contact2phone",$("#formcontact2phone").val());
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        location.reload();
+    });
+}
+
+function getjobs(){
+    url = foreman_url + '/jobs';
+    dropdown = $('#jobs');
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+            dropdown.append($('<option></option>').attr('value', entry.id).text(entry.name));
+        })
+    });
+}
+
+function getassignedjobs(){
+    url = foreman_url + '/jobs/assigned';
+    $.getJSON(url, function (data) {
+        $('#assignedjobs tbody tr').remove(); 
+        $.each(data, function (key, entry) {
+            $('#assignedjobs > tbody:last-child').append('<tr><td id="customer' + entry.id + '">' + entry.customername + '</td><td id="hostgroup' + entry.id + '">' + entry.hostgroupname + '</td><td id="job' + entry.id + '">' + entry.jobname + '</td><td class="text-center">' + entry.status + '</td><td class="text-center">' + entry.pctcomplete + '</td><td class="text-center"><button type="button" class="btn btn-success btn-sm" onclick="startjob(' + entry.id + ');" >Start</button>&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-primary btn-sm" onclick="stopjob(' + entry.id + ');" >Stop</button>&nbsp;&nbsp;&nbsp;<button type="button" class="btn btn-danger btn-sm" onclick="removeassignment(' + entry.id + ')");" >Remove</button></td></tr>');
+        })
+    });
+}
+
+function assigntask(){
+    $taskid = $('#tasklist').val();
+    $jobid = $('#jobs').val();  
+    url = foreman_url + '/jobs/addtask/' + $jobid + '/' + $taskid;
+    if ($taskid == 'Select Task'){ alert('You must select a task');return;}
+    $.getJSON(url, function (data) {
+        getjobsassignedtasks();
+    });
+}
+
+function unassigntask(){
+    $taskid = $('#assignedtasks').val();
+    $jobid = $('#jobs').val();
+    url = foreman_url + '/jobs/deletetask/' + $jobid + '/' + $taskid;
+    if ($taskid == 'Select Task'){ alert('You must select a task');return;}
+    $.getJSON(url, function (data) {
+            getjobsassignedtasks();
+    });
+}
+
+function addjob(){
+    var url = foreman_url + '/jobs/add';
+    var $jobname = $("#formname").val();
+    if ( $jobname == null || $jobname == '' ) { alert('You must enter a job name');return;}
+    var form = new FormData();
+    form.append("name",$jobname);
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        $('#modaladdjob').modal('toggle');
+        location.reload();
+    });
+}
+
+function assignjob(){
+    var url = foreman_url + '/jobs/assign';
+    var $jobid = $('#jobs').val();
+    var $hostgroupid = $('#hostgroups').val();
+    var form = new FormData();
+    form.append("jobid",$jobid);
+    form.append("groupid",$hostgroupid);
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        location.reload();
+    });
+  
+}
+
+function startjob($jobid){
+    $job = $("#job"+$jobid).text();
+    $hostgroup = $("#hostgroup"+$jobid).text(); 
+    $customer = $("#customer"+$jobid).text();
+    url = foreman_url + '/jobs/assigned/start/' + $jobid;
+    $.getJSON(url, function (data) {
+        send_to_slack("[ " + $customer + " ] Job '" + $job + "' started for group '" + $hostgroup + "'");           
+        location.reload();
+    });
+}
+
+function stopjob($jobid) {
+    url = foreman_url + '/jobs/assigned/stop/' + $jobid;
+    $job = $("#job"+$jobid).text();
+    $hostgroup = $("#hostgroup"+$jobid).text();
+    $customer = $("#customer"+$jobid).text();
+    $.getJSON(url, function (data) {
+        send_to_slack("[ " + $customer + " ] Job '" + $job + "' completed for group '" + $hostgroup + "'");
+        location.reload();
+    });
+}
+
+function getjobsassignedtasks(){
+    var jobid = $("#jobs").val();
+    url = foreman_url + '/jobs/assignedtasks/' + jobid;
+    $('#assignedtasks').empty();
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+            var $desc =  '';
+            $('#assignedtasks').append('<option value="' + entry.taskid + '">' + entry.name + '</option>');
+        })
+    });
+}
+
+function removeassignment(jobassignmentid){
+    url = foreman_url + '/jobs/assigned/delete/' + jobassignmentid;
+    $.getJSON(url, function (data) {
+        location.reload();
+    });
+}
+
+function gethostgroupsassigndelete(){
+    var customerid = $("#customers").val();
+    url = foreman_url + '/hostgroups/customer/' + customerid;
+    $('#hostgroups').empty();
+    dropdown = $('#hostgroups');
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+        //alert(getassignedhostscount(entry.id));
+        var $desc =  '';
+        $('#hostgroups').append('<option value="' + entry.id + '">' + entry.name + '</option>');
+        })
+    });
+}
+
+function gethostgroupsassign(){
+    var customerid = $("#customers").val();
+    url = foreman_url + '/hostgroups/customer/' + customerid;
+    $('#hostgroups').empty();
+    dropdown = $('#hostgroups');
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+            $hostassignedcount = getassignedhostscount(entry.id);
+            var $desc =  '';
+            if ($hostassignedcount > 0) { $desc = ' (' + $hostassignedcount + ' host assigned)';}
+            $('#hostgroups').append('<option value="' + entry.id + '">' + entry.name + $desc + '</option>');
+        })
+    });
+}
+
+
+
+function getcustomersassign() {
+    url = foreman_url + '/customers';
+    dropdown = $('#customers');
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+            $('#customers').append('<option value="' + entry.id + '">' + entry.name + '</option>');
+        })
+    });
+}
+
+function gettasklist(){
+    url = foreman_url + '/tasks';
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+            $('#tasklist').append('<option value="' + entry.id + '">' + entry.name + ' ( Foreman Template: ' + entry.foremantemplate + ' ) </option>');
+        })
+    });
+}
+ 
+function gethosts(){
+    url = foreman_url + '/hosts/unassigned';
+    $.getJSON(url, function (data) {
+        $('#discoveredhosts').empty();
+        $.each(data, function (key, entry) {
+            $('#discoveredhosts').append('<option value="' + entry.id + '">' + entry.name + '</option>');
+        })
+    });
+}
+
+function getforemanhosts(){
+    gethosts();
+    url = foreman_url + '/foreman/hosts';
+    //$('#foremanhosts').append('<option value="5">test-host-5</option>');
+    $.getJSON(url, function (data) {
+        $('#foremanhosts').empty();
+        $.ajaxSetup({ async: false});
+        $.each(data, function (key, entry) {
+            var hostname = entry.name.split('.')[0];
+            var modelname = entry.model_name;
+            if (modelname == "" || modelname == undefined) { modelname = entry.hardware_model_name; }
+            if (modelname == "VMware Virtual Platform" ) { modelname = 'VMware'; }
+            $("#discoveredhosts option").each(function() {
+                ehost = $(this).text();
+                if (hostname == ehost){
+                    hostname = "";
+                }
+            });
+            $.getJSON(foreman_url + '/hosts/assigned', function (data) {
+                $.each(data, function (key, entry) {
+                    if (entry.name == hostname){
+                        //alert('host already assigned ' + hostname);
+                        hostname = "";
+                    }
+                })
+            });
+            if (hostname != "") {
+                    $('#foremanhosts').append('<option value="' + hostname + '">' + hostname + ' (' + entry.ip + ') ' + modelname + '</option>');
+            }
+        })
+    });
+}
+
+function assignforemanhost(){
+    url = foreman_url + '/hosts/add';
+    if ($("#foremanhosts option:selected").length == 0) { alert('You must select one or more hosts.'); return; }
+    $("#foremanhosts option:selected").each(function() {
+        var host=$(this).val();
+        var form = new FormData();
+        form.append("name", host);
+        var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+        $.ajax(settings).done(function (response) {
+        });
+    });
+    location.reload();
+}
+
+function getassignedhosts(){
+    var $hostgroupid = $("#hostgroups").val();
+    var url = foreman_url + '/hosts/assigned/' + $hostgroupid;
+    $("#assignedhosts").empty();
+    $.getJSON(url, function (data) { 
+        $.each(data, function (key, entry) {
+             $('#assignedhosts').append('<option value="' + entry.id + '">' + entry.name + '</option>');
+        })
+    });
+}
+
+function unassigndiscoveredhost(){
+    if ($("#discoveredhosts option:selected").length == 0) { alert('You must select one or more hosts.'); return; }
+    $("#discoveredhosts option:selected").each(function() {
+        var hostid = $(this).val();
+        var url = foreman_url + '/hosts/delete/' + hostid;
+        $.getJSON(url, function (data) {
+            $.each(data, function (key, entry) {
+            })
+        });
+    });
+   location.reload();
+}
+
+function getassignedhostscount($hostgroupid){
+    var url = foreman_url + '/hosts/assigned/' + $hostgroupid;
+    var $totalrecords = 0;
+        $.ajaxSetup({
+          async: false
+    }); 
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+        $totalrecords = $totalrecords + 1;
+         })
+     });
+    return $totalrecords;
+}
+
+function gethostgroups(){
+    var customerid = $("#rackcustomers").val();
+    url = foreman_url + '/hostgroups/customer/' + customerid;
+    $('#hostgroups').empty();
+    dropdown = $('#hostgroups');
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+            $hostassignedcount = getassignedhostscount(entry.id);
+            var $desc =  '';
+            if ($hostassignedcount > 0) { $desc = ' (' + $hostassignedcount + ' host assigned)';}
+            $('#hostgroups').append('<option value="' + entry.id + '">' + entry.name + $desc + '</option>');
+        })
+    });
+}
+
+function getrackcustomers(){
+    url = foreman_url + '/customers';
+    $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+            $('#rackcustomers').append('<option value="' + entry.id + '">' + entry.name + '</option>');
+        })
+    });
+}
+
+function assignhost(){
+    $hostgroupid = $("#hostgroups").val();
+    $hostid = $("#discoveredhosts").val();
+    if ($hostgroupid == null) { alert('You must select a rack'); return;}
+    url = foreman_url + '/hostgroups/addhost/' + $hostgroupid + '/' + $hostid;
+    if ($hostid == null) { alert('You must select a host'); return;}
+        var form = new FormData();
+        var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+        $.ajax(settings).done(function (response) {
+            gethosts();         
+            getassignedhosts();
+            gethostgroups();
+        });
+}
+
+function addrack(){
+    url = foreman_url + '/hostgroups/add';
+    var $rackname = $("#formname").val();
+    var $customerid = $("#rackcustomers").val();
+    if ( $customerid == null || $customerid == 'Select Customer' ) { alert('You must select a customer. ');return;}
+    var form = new FormData();
+    form.append("name",$rackname);
+    form.append("customerid",$customerid);
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        $('#modalrack').modal('toggle');
+        gethostgroups();
+        send_to_slack('New rack has been added to integration environment.');
+    });
+}
+
+function deleterack(){
+    var $hostgroupid = $('#hostgroups').val();
+    if ($hostgroupid == null) { alert('You  must select a rack'); }
+    url = foreman_url + '/hostgroups/delete/' + $hostgroupid;
+    $.getJSON(url, function (data) {
+        gethostgroups();
+    });
+}
+
+function unassignhost(){
+    $hostgroupid = $("#hostgroups").val();
+    $hostid = $("#assignedhosts").val();
+    var url = foreman_url + '/hostgroups/deletehost/' + $hostgroupid + '/' + $hostid;
+    var form = new FormData();
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        gethosts();
+        gethostgroups();
+        getassignedhosts();
+    });
+}
+
+
+function addcustomer(){
+    var url = foreman_url + '/customers/add';
+    var form = new FormData();
+    form.append("name",$("#formname").val());
+    form.append("addressline1",$("#formaddressline1").val());
+    form.append("addressline2",$("#formaddressline2").val());
+    form.append("addressline3",$("#formaddressline3").val());
+    form.append("contact1",$("#formcontact1").val());
+    form.append("contact1phone",$("#formcontact1phone").val());
+    form.append("contact2",$("#formcontact2").val());
+    form.append("contact2phone",$("#formcontact2phone").val());
+    var settings = { "url": url, "method": "POST", "processData": false, "contentType": false, "mimeType": "multipart/form-data", "data": form}
+    $.ajax(settings).done(function (response) {
+        location.reload();
+    });
+}
+
+

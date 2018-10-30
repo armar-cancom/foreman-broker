@@ -1,0 +1,80 @@
+---
+- debug:
+    msg: "Installing the Foreman broker"
+
+- name: Copy api configuration file to /etc/httpd
+  template:
+    src: api.conf.j2
+    dest: /etc/httpd/conf.d/api.conf
+
+- name: Copy foreman-broker.conf file to /etc/httpd
+  template:
+    src: foreman-broker.conf.j2
+    dest: /etc/httpd/conf.d/foreman-broker.conf
+
+- name: Copy foreman-broker www files to /var/www/html
+  copy: 
+    src: files/www/foreman-broker/
+    dest: /var/www/html/foreman-broker
+    owner: apache
+    group: apache
+
+- name: Enable cron
+  service:
+    name: crond
+    enabled: yes
+
+- name: Install zip
+  yum:
+    name: zip
+    state: present
+
+- name: Install php
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - rh-php56-php-pecl-jsonc
+    - rh-php56-php-xml
+    - php70u-common
+    - php70u-cli
+    - php70u-mbstring
+    - rh-php56-runtime
+    - rh-php56-php-common
+    - rh-php56-php-process
+    - rh-php56-php-pear
+    - php70u-pdo
+    - mod_php70u
+    - php70u-gd
+    - php70u-xml
+    - php70u-json
+    - php70u-pear
+    - rh-php56-php-cli
+    - rh-php56
+    - php70u-mysqlnd
+    - php70u-mcrypt
+    - php70u-process
+
+- name: Copy php.conf to /etc/httpd
+  copy:
+    src: php.conf
+    dest: /etc/httpd/conf.d/php.conf
+
+- name: Copy foremanbroker.js
+  template:
+    src: foremanbroker.js.j2
+    dest: /var/www/html/foreman-broker/adminconsole/js/foremanbroker.js
+
+- name: Copy settings.php
+  template:
+    src: settings.php.j2
+    dest: /var/www/html/foreman-broker/api/src/settings.php
+
+- name: Copy dependencies.php
+  template:
+    src: dependencies.php.j2
+    dest: /var/www/html/foreman-broker/api/src/dependencies.php
+
+- name: Restart apache
+  service:
+    name: httpd
+    state: restarted
